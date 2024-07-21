@@ -1,0 +1,14 @@
+<launch>
+  <arg name="launch_prefix" value="" />
+
+  <!--Retrieve the right rviz config file-->
+  <arg name="rviz_config" default="$(dirname)/moveit.rviz" />
+
+  <arg if="$(eval rviz_config=='')" name="command_args" value="" />
+  <arg if="$(eval rviz_config!='')" name="command_args" value="-d $(arg rviz_config)" />
+
+  <node name="$(anon rviz)" launch-prefix="$(arg launch_prefix)" pkg="rviz" type="rviz" respawn="false"
+        args="$(arg command_args)" output="screen">
+  </node>
+
+</launch>

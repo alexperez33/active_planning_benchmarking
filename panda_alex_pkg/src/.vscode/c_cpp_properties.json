@@ -1,0 +1,46 @@
+{
+  "configurations": [
+    {
+      "browse": {
+        "databaseFilename": "${default}",
+        "limitSymbolsToIncludedHeaders": false
+      },
+      "includePath": [
+        "/home/asper/catkin_ws2/devel/include/**",
+        "/opt/ros/noetic/include/**",
+        "/home/asper/mil_ws/devel/include/**",
+        "/home/asper/mil_ws/src/mil/SubjuGator/drivers/sub8_adis16400_imu/include/**",
+        "/home/asper/mil_ws/src/mil/SubjuGator/gnc/c3_trajectory_generator/include/**",
+        "/home/asper/mil_ws/src/mil/SubjuGator/drivers/sub8_depth_driver/include/**",
+        "/home/asper/mil_ws/src/mil/mil_common/drivers/LMS1xx/include/**",
+        "/home/asper/mil_ws/src/mil/mil_common/drivers/mil_blueview_driver/include/**",
+        "/home/asper/mil_ws/src/mil/mil_common/simulation/mil_gazebo/include/**",
+        "/home/asper/mil_ws/src/mil/mil_common/utils/mil_tools/include/**",
+        "/home/asper/mil_ws/src/mil/mil_common/perception/mil_vision/include/**",
+        "/home/asper/mil_ws/src/mil/NaviGator/simulation/navigator_gazebo/include/**",
+        "/home/asper/mil_ws/src/mil/NaviGator/perception/navigator_vision/include/**",
+        "/home/asper/mil_ws/src/mil/mil_common/gnc/odom_estimator/include/**",
+        "/home/asper/catkin_ws2/src/panda_alex_pkg/include/**",
+        "/home/asper/mil_ws/src/mil/mil_common/perception/point_cloud_object_detection_and_recognition/include/**",
+        "/home/asper/mil_ws/src/mil/mil_common/drivers/pointgrey_camera_driver/pointgrey_camera_driver/include/**",
+        "/home/asper/mil_ws/src/mil/SubjuGator/drivers/sub8_rdi_dvl/include/**",
+        "/home/asper/mil_ws/src/mil/mil_common/drivers/roboteq/roboteq_driver/include/**",
+        "/home/asper/mil_ws/src/mil/mil_common/ros_alarms/include/**",
+        "/home/asper/mil_ws/src/mil/SubjuGator/utils/subjugator_build_tools/include/**",
+        "/home/asper/mil_ws/src/mil/SubjuGator/simulation/subjugator_gazebo/include/**",
+        "/home/asper/mil_ws/src/mil/SubjuGator/perception/subjugator_perception/include/**",
+        "/home/asper/mil_ws/src/mil/SubjuGator/perception/subjugator_pointcloud/include/**",
+        "/home/asper/mil_ws/src/mil/NaviGator/simulation/VRX/vrx/usv_gazebo_plugins/include/**",
+        "/home/asper/mil_ws/src/mil/NaviGator/simulation/VRX/vrx/vrx_gazebo/include/**",
+        "/home/asper/mil_ws/src/mil/NaviGator/simulation/VRX/vrx/wave_gazebo_plugins/include/**",
+        "/usr/include/**"
+      ],
+      "name": "ROS",
+      "intelliSenseMode": "gcc-x64",
+      "compilerPath": "/usr/bin/gcc",
+      "cStandard": "gnu11",
+      "cppStandard": "c++14"
+    }
+  ],
+  "version": 4
+}

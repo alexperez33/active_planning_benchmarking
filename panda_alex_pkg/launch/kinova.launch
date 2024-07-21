@@ -1,0 +1,33 @@
+<launch>
+
+  <!-- Transmission used for joint control: position, velocity, or effort -->
+  <arg name="transmission" />
+
+  <!-- By default, hide joint_state_publisher's GUI in 'fake' controller_manager mode -->
+  <arg name="use_rviz" default="true" />
+  <arg name="debug" default="false" />
+
+  <!-- If needed, broadcast static tf for robot root -->
+
+  <!-- We do not have a real robot connected, so publish fake joint states via a joint_state_publisher
+        MoveIt's fake controller's joint states are considered via the 'source_list' parameter -->
+  <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+    <rosparam param="source_list">[move_group/fake_controller_joint_states]</rosparam>
+  </node>
+
+  <!-- Given the published joint states, publish tf for the robot links -->
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="true" output="screen" />
+
+  <!-- Run the main MoveIt! executable without trajectory execution (we do not have controllers configured by default) -->
+  <include file="$(find gen3_lite_gen3_lite_2f_move_it_config)/launch/move_group.launch">
+  </include>
+
+  <!-- Run Rviz and load the default config to see the state of the move_group node -->
+  <include file="$(find gen3_lite_gen3_lite_2f_move_it_config)/launch/moveit_rviz.launch">
+    <arg name="config" value="true"/>
+    <arg name="debug" value="$(arg debug)"/>
+  </include>
+
+  <node name="kinova_planner" pkg="panda_alex_pkg" type="kinova_planner"/>
+
+</launch>
