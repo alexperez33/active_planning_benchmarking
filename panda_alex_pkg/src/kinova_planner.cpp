@@ -208,9 +208,9 @@ public:
         shape_msgs::SolidPrimitive cylinder_shape;
         cylinder_shape.type = shape_msgs::SolidPrimitive::SPHERE;
         cylinder_shape.dimensions.resize(3);
-        cylinder_shape.dimensions[0] = r/2;
-        cylinder_shape.dimensions[1] = r/2;
-        cylinder_shape.dimensions[2] = r/2;
+        cylinder_shape.dimensions[0] = r;
+        cylinder_shape.dimensions[1] = r;
+        cylinder_shape.dimensions[2] = r;
         collision_objects.primitives.push_back(cylinder_shape);
         collision_objects.primitive_poses.push_back(cylinderPose);
 
@@ -309,7 +309,7 @@ class KinovaPlanner {
         else if (current_solver == "tprm_original")
             solve_tprm(false, 3000, 3);
         else if (current_solver == "strrt")
-            solve_strrt(240, 80);
+            solve_strrt(60, 20);
         else
             std::cout << "Solver unrecognized" << std::endl;
         return true;
@@ -385,7 +385,7 @@ class KinovaPlanner {
 
         // check if the path between the states is unconstrained (perform interpolation)...
         double t1 = 0;
-        double t2 = 10;
+        double t2 = 20;
         double t = t1;
         double delta = 0.01;
 
@@ -428,6 +428,11 @@ class KinovaPlanner {
 
     void setCurrentJointState(std::vector<double> joint_values, bool set_on_rviz)
     {
+
+        for (int i = 0; i < joint_values.size(); i++)
+            std::cout << joint_values[i] << ", ";
+        std::cout << std::endl;
+
         // set joint group position
         const moveit::core::JointModelGroup* joint_model_group = kinematic_model->getJointModelGroup("arm");
         kinematic_state->setJointGroupPositions(joint_model_group, joint_values);
@@ -486,9 +491,9 @@ class KinovaPlanner {
         shape_msgs::SolidPrimitive cylinder_shape;
         cylinder_shape.type = shape_msgs::SolidPrimitive::SPHERE;
         cylinder_shape.dimensions.resize(3);
-        cylinder_shape.dimensions[0] = r/2;
-        cylinder_shape.dimensions[1] = r/2;
-        cylinder_shape.dimensions[2] = r/2;
+        cylinder_shape.dimensions[0] = r;
+        cylinder_shape.dimensions[1] = r;
+        cylinder_shape.dimensions[2] = r;
         collision_objects.primitives.push_back(cylinder_shape);
         collision_objects.primitive_poses.push_back(cylinderPose);
 
@@ -511,9 +516,9 @@ class KinovaPlanner {
             marker.pose.orientation.y = cylinderPose.orientation.y;
             marker.pose.orientation.z = cylinderPose.orientation.z;
             marker.pose.orientation.w = cylinderPose.orientation.w;
-            marker.scale.x = r/2;
-            marker.scale.y = r/2;
-            marker.scale.z = r/2;
+            marker.scale.x = r*2;
+            marker.scale.y = r*2;
+            marker.scale.z = r*2;
             marker.color.a = 1.0;
             marker.color.r = 0.0;
             marker.color.g = 1.0;
@@ -657,7 +662,7 @@ class KinovaPlanner {
 
         std::cout << "Entering strrt benchmark" << std::endl;
         // set maximum velocity
-        double vMax = 0.15;
+        double vMax = 0.25;
         double dim = 6;
         strrt_goal_travel_time = goal_travel_time;
 
@@ -667,8 +672,8 @@ class KinovaPlanner {
 
         // set the bounds for R2 or R3
         ob::RealVectorBounds bounds(dim);
-        bounds.setLow(-6.28);
-        bounds.setHigh(6.28);
+        bounds.setLow(-3.14);
+        bounds.setHigh(3.14);
         vectorSpace->setBounds(bounds);
 
         // set time bounds. Planning with unbounded time is also possible when using ST-RRT*.
@@ -734,11 +739,9 @@ class KinovaPlanner {
         double strrt_solve_time = (end - begin).sec + (end - begin).nsec * 1e-9;
         std::cout << "STRRT finished in " << strrt_solve_time << " seconds" << std::endl;
 
-        ompl::base::PlannerStatus::StatusType status;
-        if (solved)
+        if (solved == ob::PlannerStatus::EXACT_SOLUTION)
         {
             std::cout << "Found solution:" << std::endl;
-            status = ompl::base::PlannerStatus::EXACT_SOLUTION;
             // print the path to screen
             ss.getSolutionPath().print(std::cout);
         }
@@ -750,7 +753,8 @@ class KinovaPlanner {
         std::string res = std::to_string(max_solve_time) + ", " + 
                           std::to_string(strrt_goal_travel_time) + ", " +
                           std::to_string(strrt_solve_time) + ", ";
-        if (solved)
+        
+        if (solved == ob::PlannerStatus::EXACT_SOLUTION)
         {
             ompl::geometric::PathGeometric fullpath = ss.getSolutionPath();
             std::vector<ompl::base::State*> states = fullpath.getStates();
@@ -853,17 +857,17 @@ int main (int argc, char **argv)
     ros::Duration(2).sleep();
 
     // Start Scenario 1:
-    std::vector<double> start = {0.5, -1.0, 0.6, 0, 0, 0};
-    std::vector<double> goal = {-0.5, -1.0, 0.6, 0, 0, 0};
+    std::vector<double> start = {-0.5, -1.0, 0.6, 0, 0, 0};
+    std::vector<double> goal = {0.5, -1.0, 0.6, 0, 0, 0};
     std::vector<MovingCircle> obstacles;
 
-    for (int i = 0; i < 10; i++)
+    for (int i = 0; i < 15; i++)
     {
         Eigen::Vector3d pos;
-        pos << 0.5,0.5,0.1*i+0.2;
+        pos << 0.5,0.5,0.1*i - 0.2;
         Eigen::Vector3d vel;
         vel << 0,-0.1,0;
-        obstacles.push_back(MovingCircle(pos, 0.15, vel, i));
+        obstacles.push_back(MovingCircle(pos, 0.04, vel, i));
     }
     nc.define_scenario("strrt", start, goal, obstacles, false);
 

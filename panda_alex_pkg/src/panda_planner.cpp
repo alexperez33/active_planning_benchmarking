@@ -196,9 +196,9 @@ public:
         shape_msgs::SolidPrimitive cylinder_shape;
         cylinder_shape.type = shape_msgs::SolidPrimitive::SPHERE;
         cylinder_shape.dimensions.resize(3);
-        cylinder_shape.dimensions[0] = r/2;
-        cylinder_shape.dimensions[1] = r/2;
-        cylinder_shape.dimensions[2] = r/2;
+        cylinder_shape.dimensions[0] = r;
+        cylinder_shape.dimensions[1] = r;
+        cylinder_shape.dimensions[2] = r;
         collision_objects.primitives.push_back(cylinder_shape);
         collision_objects.primitive_poses.push_back(cylinderPose);
 
@@ -414,9 +414,9 @@ class PandaPlanner {
         shape_msgs::SolidPrimitive cylinder_shape;
         cylinder_shape.type = shape_msgs::SolidPrimitive::SPHERE;
         cylinder_shape.dimensions.resize(3);
-        cylinder_shape.dimensions[0] = r/2;
-        cylinder_shape.dimensions[1] = r/2;
-        cylinder_shape.dimensions[2] = r/2;
+        cylinder_shape.dimensions[0] = r;
+        cylinder_shape.dimensions[1] = r;
+        cylinder_shape.dimensions[2] = r;
         collision_objects.primitives.push_back(cylinder_shape);
         collision_objects.primitive_poses.push_back(cylinderPose);
 
@@ -439,9 +439,9 @@ class PandaPlanner {
             marker.pose.orientation.y = cylinderPose.orientation.y;
             marker.pose.orientation.z = cylinderPose.orientation.z;
             marker.pose.orientation.w = cylinderPose.orientation.w;
-            marker.scale.x = r/2;
-            marker.scale.y = r/2;
-            marker.scale.z = r/2;
+            marker.scale.x = r*2;
+            marker.scale.y = r*2;
+            marker.scale.z = r*2;
             marker.color.a = 1.0;
             marker.color.r = 0.0;
             marker.color.g = 1.0;
