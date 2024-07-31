@@ -194,6 +194,9 @@ target_link_libraries(panda_planner tprm ${catkin_LIBRARIES})
 add_executable(kinova_planner src/kinova_planner.cpp)
 target_link_libraries(kinova_planner tprm ${catkin_LIBRARIES})
 
+add_executable(dual_kinova_planner src/dual_kinova_planner.cpp)
+target_link_libraries(dual_kinova_planner tprm ${catkin_LIBRARIES})
+
 add_executable(nr_testing src/nr_testing.cpp)
 target_link_libraries(nr_testing ${orocos_kdl_LIBRARIES} ${catkin_LIBRARIES})
 

@@ -1,0 +1,130 @@
+<?xml version="1.0" ?>
+<!--This does not replace URDF, and is not an extension of URDF.
+    This is a format for representing semantic information about the robot structure.
+    A URDF file must exist for this robot as well, where the joints and the links that are referenced are defined
+-->
+<robot name="gen3_lite_gen3_lite_2f" xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <xacro:arg name="left_prefix" default="left_" />
+    <xacro:arg name="right_prefix" default="right_" />
+    <!--GROUPS: Representation of a set of joints and links. This can be useful for specifying DOF to plan for, defining arms, end effectors, etc-->
+    <!--LINKS: When a link is specified, the parent joint of that link (if it exists) is automatically included-->
+    <!--JOINTS: When a joint is specified, the child link of that joint (which will always exist) is automatically included-->
+    <!--CHAINS: When a chain is specified, all the links along the chain (including endpoints) are included in the group. Additionally, all the joints that are parents to included links are also included. This means that joints along the chain and the parent joint of the base link are included in the group-->
+    <!--SUBGROUPS: Groups can also be formed by referencing to already defined group names-->
+    <group name="left_arm">
+        <joint name="$(arg left_prefix)joint_1" />
+        <joint name="$(arg left_prefix)joint_2" />
+        <joint name="$(arg left_prefix)joint_3" />
+        <joint name="$(arg left_prefix)joint_4" />
+        <joint name="$(arg left_prefix)joint_5" />
+        <joint name="$(arg left_prefix)joint_6" />
+        <joint name="$(arg left_prefix)end_effector" />
+        <joint name="$(arg left_prefix)tool_frame_joint" />
+    </group>
+    <group name="right_arm">
+        <joint name="$(arg right_prefix)joint_1" />
+        <joint name="$(arg right_prefix)joint_2" />
+        <joint name="$(arg right_prefix)joint_3" />
+        <joint name="$(arg right_prefix)joint_4" />
+        <joint name="$(arg right_prefix)joint_5" />
+        <joint name="$(arg right_prefix)joint_6" />
+        <joint name="$(arg right_prefix)end_effector" />
+        <joint name="$(arg right_prefix)tool_frame_joint" />
+    </group>
+    <group name="left_gripper">
+        <link name="$(arg left_prefix)gripper_base_link" />
+        <link name="$(arg left_prefix)left_finger_prox_link" />
+        <link name="$(arg left_prefix)left_finger_dist_link" />
+        <link name="$(arg left_prefix)right_finger_prox_link" />
+        <link name="$(arg left_prefix)right_finger_dist_link" />
+    </group>
+    <group name="right_gripper">
+        <link name="$(arg right_prefix)gripper_base_link" />
+        <link name="$(arg right_prefix)left_finger_prox_link" />
+        <link name="$(arg right_prefix)left_finger_dist_link" />
+        <link name="$(arg right_prefix)right_finger_prox_link" />
+        <link name="$(arg right_prefix)right_finger_dist_link" />
+    </group>
+ 
+    <!--END EFFECTOR: Purpose: Represent information about an end effector.-->
+    <end_effector name="end_effector" parent_link="$(arg left_prefix)tool_frame" group="left_arm" />
+    <end_effector name="end_effector" parent_link="$(arg right_prefix)tool_frame" group="right_arm" />
+    <!--PASSIVE JOINT: Purpose: this element is used to mark joints that are not actuated-->
+    <passive_joint name="$(arg left_prefix)right_finger_tip_joint" />
+    <passive_joint name="$(arg left_prefix)left_finger_tip_joint" />
+    <passive_joint name="$(arg left_prefix)left_finger_bottom_joint" />
+    <passive_joint name="$(arg right_prefix)right_finger_tip_joint" />
+    <passive_joint name="$(arg right_prefix)left_finger_tip_joint" />
+    <passive_joint name="$(arg right_prefix)left_finger_bottom_joint" />
+
+    <!--DISABLE COLLISIONS: By default it is assumed that any link of the robot could potentially come into collision with any other link in the robot. This tag disables collision checking between a specified pair of links. -->
+    <disable_collisions link1="$(arg left_prefix)arm_link" link2="$(arg left_prefix)base_link" reason="Never" />
+    <disable_collisions link1="$(arg left_prefix)arm_link" link2="$(arg left_prefix)forearm_link" reason="Adjacent" />
+    <disable_collisions link1="$(arg left_prefix)arm_link" link2="$(arg left_prefix)lower_wrist_link" reason="Never" />
+    <disable_collisions link1="$(arg left_prefix)arm_link" link2="$(arg left_prefix)shoulder_link" reason="Adjacent" />
+    <disable_collisions link1="$(arg left_prefix)base_link" link2="$(arg left_prefix)shoulder_link" reason="Adjacent" />
+    <disable_collisions link1="$(arg left_prefix)forearm_link" link2="$(arg left_prefix)gripper_base_link" reason="Never" />
+    <disable_collisions link1="$(arg left_prefix)forearm_link" link2="$(arg left_prefix)left_finger_dist_link" reason="Never" />
+    <disable_collisions link1="$(arg left_prefix)forearm_link" link2="$(arg left_prefix)left_finger_prox_link" reason="Never" />
+    <disable_collisions link1="$(arg left_prefix)forearm_link" link2="$(arg left_prefix)lower_wrist_link" reason="Adjacent" />
+    <disable_collisions link1="$(arg left_prefix)forearm_link" link2="$(arg left_prefix)right_finger_dist_link" reason="Never" />
+    <disable_collisions link1="$(arg left_prefix)forearm_link" link2="$(arg left_prefix)right_finger_prox_link" reason="Never" />
+    <disable_collisions link1="$(arg left_prefix)forearm_link" link2="$(arg left_prefix)shoulder_link" reason="Never" />
+    <disable_collisions link1="$(arg left_prefix)forearm_link" link2="$(arg left_prefix)upper_wrist_link" reason="Never" />
+    <disable_collisions link1="$(arg left_prefix)gripper_base_link" link2="$(arg left_prefix)left_finger_dist_link" reason="Never" />
+    <disable_collisions link1="$(arg left_prefix)gripper_base_link" link2="$(arg left_prefix)left_finger_prox_link" reason="Adjacent" />
+    <disable_collisions link1="$(arg left_prefix)gripper_base_link" link2="$(arg left_prefix)lower_wrist_link" reason="Never" />
+    <disable_collisions link1="$(arg left_prefix)gripper_base_link" link2="$(arg left_prefix)right_finger_dist_link" reason="Never" />
+    <disable_collisions link1="$(arg left_prefix)gripper_base_link" link2="$(arg left_prefix)right_finger_prox_link" reason="Adjacent" />
+    <disable_collisions link1="$(arg left_prefix)gripper_base_link" link2="$(arg left_prefix)upper_wrist_link" reason="Adjacent" />
+    <disable_collisions link1="$(arg left_prefix)left_finger_dist_link" link2="$(arg left_prefix)left_finger_prox_link" reason="Adjacent" />
+    <disable_collisions link1="$(arg left_prefix)left_finger_dist_link" link2="$(arg left_prefix)lower_wrist_link" reason="Never" />
+    <disable_collisions link1="$(arg left_prefix)left_finger_dist_link" link2="$(arg left_prefix)right_finger_dist_link" reason="Never" />
+    <disable_collisions link1="$(arg left_prefix)left_finger_dist_link" link2="$(arg left_prefix)right_finger_prox_link" reason="Never" />
+    <disable_collisions link1="$(arg left_prefix)left_finger_dist_link" link2="$(arg left_prefix)upper_wrist_link" reason="Never" />
+    <disable_collisions link1="$(arg left_prefix)left_finger_prox_link" link2="$(arg left_prefix)lower_wrist_link" reason="Never" />
+    <disable_collisions link1="$(arg left_prefix)left_finger_prox_link" link2="$(arg left_prefix)right_finger_dist_link" reason="Never" />
+    <disable_collisions link1="$(arg left_prefix)left_finger_prox_link" link2="$(arg left_prefix)right_finger_prox_link" reason="Never" />
+    <disable_collisions link1="$(arg left_prefix)left_finger_prox_link" link2="$(arg left_prefix)upper_wrist_link" reason="Never" />
+    <disable_collisions link1="$(arg left_prefix)lower_wrist_link" link2="$(arg left_prefix)right_finger_dist_link" reason="Never" />
+    <disable_collisions link1="$(arg left_prefix)lower_wrist_link" link2="$(arg left_prefix)right_finger_prox_link" reason="Never" />
+    <disable_collisions link1="$(arg left_prefix)lower_wrist_link" link2="$(arg left_prefix)upper_wrist_link" reason="Adjacent" />
+    <disable_collisions link1="$(arg left_prefix)right_finger_dist_link" link2="$(arg left_prefix)right_finger_prox_link" reason="Adjacent" />
+    <disable_collisions link1="$(arg left_prefix)right_finger_dist_link" link2="$(arg left_prefix)upper_wrist_link" reason="Never" />
+    <disable_collisions link1="$(arg left_prefix)right_finger_prox_link" link2="$(arg left_prefix)upper_wrist_link" reason="Never" />
+
+    <disable_collisions link1="$(arg right_prefix)arm_link" link2="$(arg right_prefix)base_link" reason="Never" />
+    <disable_collisions link1="$(arg right_prefix)arm_link" link2="$(arg right_prefix)forearm_link" reason="Adjacent" />
+    <disable_collisions link1="$(arg right_prefix)arm_link" link2="$(arg right_prefix)lower_wrist_link" reason="Never" />
+    <disable_collisions link1="$(arg right_prefix)arm_link" link2="$(arg right_prefix)shoulder_link" reason="Adjacent" />
+    <disable_collisions link1="$(arg right_prefix)base_link" link2="$(arg right_prefix)shoulder_link" reason="Adjacent" />
+    <disable_collisions link1="$(arg right_prefix)forearm_link" link2="$(arg right_prefix)gripper_base_link" reason="Never" />
+    <disable_collisions link1="$(arg right_prefix)forearm_link" link2="$(arg right_prefix)left_finger_dist_link" reason="Never" />
+    <disable_collisions link1="$(arg right_prefix)forearm_link" link2="$(arg right_prefix)left_finger_prox_link" reason="Never" />
+    <disable_collisions link1="$(arg right_prefix)forearm_link" link2="$(arg right_prefix)lower_wrist_link" reason="Adjacent" />
+    <disable_collisions link1="$(arg right_prefix)forearm_link" link2="$(arg right_prefix)right_finger_dist_link" reason="Never" />
+    <disable_collisions link1="$(arg right_prefix)forearm_link" link2="$(arg right_prefix)right_finger_prox_link" reason="Never" />
+    <disable_collisions link1="$(arg right_prefix)forearm_link" link2="$(arg right_prefix)shoulder_link" reason="Never" />
+    <disable_collisions link1="$(arg right_prefix)forearm_link" link2="$(arg right_prefix)upper_wrist_link" reason="Never" />
+    <disable_collisions link1="$(arg right_prefix)gripper_base_link" link2="$(arg right_prefix)left_finger_dist_link" reason="Never" />
+    <disable_collisions link1="$(arg right_prefix)gripper_base_link" link2="$(arg right_prefix)left_finger_prox_link" reason="Adjacent" />
+    <disable_collisions link1="$(arg right_prefix)gripper_base_link" link2="$(arg right_prefix)lower_wrist_link" reason="Never" />
+    <disable_collisions link1="$(arg right_prefix)gripper_base_link" link2="$(arg right_prefix)right_finger_dist_link" reason="Never" />
+    <disable_collisions link1="$(arg right_prefix)gripper_base_link" link2="$(arg right_prefix)right_finger_prox_link" reason="Adjacent" />
+    <disable_collisions link1="$(arg right_prefix)gripper_base_link" link2="$(arg right_prefix)upper_wrist_link" reason="Adjacent" />
+    <disable_collisions link1="$(arg right_prefix)left_finger_dist_link" link2="$(arg right_prefix)left_finger_prox_link" reason="Adjacent" />
+    <disable_collisions link1="$(arg right_prefix)left_finger_dist_link" link2="$(arg right_prefix)lower_wrist_link" reason="Never" />
+    <disable_collisions link1="$(arg right_prefix)left_finger_dist_link" link2="$(arg right_prefix)right_finger_dist_link" reason="Never" />
+    <disable_collisions link1="$(arg right_prefix)left_finger_dist_link" link2="$(arg right_prefix)right_finger_prox_link" reason="Never" />
+    <disable_collisions link1="$(arg right_prefix)left_finger_dist_link" link2="$(arg right_prefix)upper_wrist_link" reason="Never" />
+    <disable_collisions link1="$(arg right_prefix)left_finger_prox_link" link2="$(arg right_prefix)lower_wrist_link" reason="Never" />
+    <disable_collisions link1="$(arg right_prefix)left_finger_prox_link" link2="$(arg right_prefix)right_finger_dist_link" reason="Never" />
+    <disable_collisions link1="$(arg right_prefix)left_finger_prox_link" link2="$(arg right_prefix)right_finger_prox_link" reason="Never" />
+    <disable_collisions link1="$(arg right_prefix)left_finger_prox_link" link2="$(arg right_prefix)upper_wrist_link" reason="Never" />
+    <disable_collisions link1="$(arg right_prefix)lower_wrist_link" link2="$(arg right_prefix)right_finger_dist_link" reason="Never" />
+    <disable_collisions link1="$(arg right_prefix)lower_wrist_link" link2="$(arg right_prefix)right_finger_prox_link" reason="Never" />
+    <disable_collisions link1="$(arg right_prefix)lower_wrist_link" link2="$(arg right_prefix)upper_wrist_link" reason="Adjacent" />
+    <disable_collisions link1="$(arg right_prefix)right_finger_dist_link" link2="$(arg right_prefix)right_finger_prox_link" reason="Adjacent" />
+    <disable_collisions link1="$(arg right_prefix)right_finger_dist_link" link2="$(arg right_prefix)upper_wrist_link" reason="Never" />
+    <disable_collisions link1="$(arg right_prefix)right_finger_prox_link" link2="$(arg right_prefix)upper_wrist_link" reason="Never" />
+</robot>

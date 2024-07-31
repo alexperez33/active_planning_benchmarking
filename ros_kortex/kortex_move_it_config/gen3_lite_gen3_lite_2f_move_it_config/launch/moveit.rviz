@@ -5,6 +5,7 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /Global Options1
+        - /RobotModel1/Status1
         - /Marker1
       Splitter Ratio: 0.7425600290298462
     Tree Height: 713
@@ -50,73 +51,144 @@ Visualization Manager:
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
-        arm_link:
+        left_arm_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        base_link:
+        left_base_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        dummy_link:
+        left_dummy_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        end_effector_link:
+        left_end_effector_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        forearm_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        gripper_base_link:
+        left_forearm_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        left_finger_dist_link:
+        left_gripper_base_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        left_finger_prox_link:
+        left_left_finger_dist_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        lower_wrist_link:
+        left_left_finger_prox_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        right_finger_dist_link:
+        left_lower_wrist_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        right_finger_prox_link:
+        left_right_finger_dist_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        shoulder_link:
+        left_right_finger_prox_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        tool_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        upper_wrist_link:
+        left_shoulder_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
+        left_tool_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_upper_wrist_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_arm_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_dummy_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_end_effector_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_forearm_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_gripper_base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_left_finger_dist_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_left_finger_prox_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_lower_wrist_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_right_finger_dist_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_right_finger_prox_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_shoulder_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_tool_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_upper_wrist_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        world:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
       Name: RobotModel
       Robot Description: robot_description
       TF Prefix: ""
@@ -135,7 +207,7 @@ Visualization Manager:
   Global Options:
     Background Color: 48; 48; 48
     Default Light: true
-    Fixed Frame: base_link
+    Fixed Frame: world
     Frame Rate: 30
   Name: root
   Tools:
@@ -147,7 +219,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/XYOrbit
-      Distance: 2.996500015258789
+      Distance: 5.862228870391846
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -155,17 +227,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.11356700211763382
-        Y: 0.10592000186443329
-        Z: 2.2351800055275817e-07
+        X: 0.6135567426681519
+        Y: 0.19157664477825165
+        Z: 2.2351798634190345e-07
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.5097969770431519
+      Pitch: 0.594796895980835
       Target Frame: base_link
-      Yaw: 5.659949779510498
+      Yaw: 5.334956169128418
     Saved: ~
 Window Geometry:
   Displays:
