@@ -1,0 +1,29 @@
+<launch>
+    
+
+  <!-- We do not have a real robot connected, so publish fake joint states via a joint_state_publisher
+        MoveIt's fake controller's joint states are considered via the 'source_list' parameter -->
+  <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+    <rosparam param="source_list">[move_group/fake_controller_joint_states]</rosparam>
+  </node>
+
+  <!-- Given the published joint states, publish tf for the robot links -->
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="true" output="screen" />
+
+  <!-- Load universal robot description format (URDF) -->
+  <param name="robot_description" command="xacro  '$(find active_planning_pkg)/robots/kinova/robots/gen3_lite_gen3_lite_2f.xacro'"/>
+
+  <!-- The semantic description that corresponds to the URDF -->
+  <param name="robot_description_semantic" command="$(find xacro)/xacro $(find active_planning_pkg)/config/kinova/gen3_lite_gen3_lite_2f.srdf.xacro"/>
+
+  <group ns="robot_description_kinematics">
+    <rosparam command="load" file="$(find active_planning_pkg)/config/kinova/kinematics.yaml"/>
+  </group>
+
+  <arg name="command_args" value="-d $(find active_planning_pkg)/launch/moveit.rviz" />
+  <node name="$(anon rviz)" pkg="rviz" type="rviz" respawn="false" args="$(arg command_args)" output="screen" />
+
+
+  <node name="kinova_planner" pkg="active_planning_pkg" type="kinova_planner"/>
+
+</launch>
