@@ -318,7 +318,7 @@ class KinovaPlanner {
         else if (current_solver == "tprm_original")
             solve_tprm(false, 3000, 3);
         else if (current_solver == "strrt")
-            solve_strrt(60, 20);
+            solve_strrt(60, 12);
         else
             std::cout << "Solver unrecognized" << std::endl;
         return true;
@@ -384,7 +384,7 @@ class KinovaPlanner {
                 }
 
                 t += delta;
-                //ros::Duration(delta).sleep();
+                ros::Duration(delta).sleep();
 
             }
 
@@ -986,10 +986,11 @@ int main (int argc, char **argv)
         vel << 0,-0.1,0;
         obstacles.push_back(MovingCircle(pos, 0.04, vel, i));
     }
-    nc.define_scenario("tprm", start, goal, obstacles, false);
+    nc.define_scenario("strrt", start, goal, obstacles, false);
+    ros::spin();
 
     //////// TESTING ///////////
-    std::vector<int> sample_sizes = {200, 400, 600, 800, 1000, 2000, 4000, 6000};
+    /*std::vector<int> sample_sizes = {200, 400, 600, 800, 1000, 2000, 4000, 6000};
     std::vector<double> edge_sizes = {2, 3, 4};
     std::vector<double> solve_times = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 25, 30};
     std::vector<double> goal_travel_times = {5, 10, 15, 20, 25, 30, 35, 40};
@@ -1002,7 +1003,7 @@ int main (int argc, char **argv)
     {
 
         // TEST SETUP 1: New TPRM Algorithm
-        /*results = "";
+        results = "";
         results_replan = "";
         for (int i = 0; i < sample_sizes.size(); i++)
         {
@@ -1047,7 +1048,7 @@ int main (int argc, char **argv)
         filePath = "/home/asper/catkin_ws2/logs/data/kinova/results_orig_tprm_resolve_" + std::to_string(trial) + ".csv";
         std::ofstream ofs2_resolve(filePath.c_str(), std::ios_base::out );
         ofs2_resolve << results_replan;
-        ofs2_resolve.close();*/
+        ofs2_resolve.close();
 
         // TEST SETUP 3: STRRT Algorithm: Constant max solve time, Variable target execution time
         nc.change_solver("strrt");
@@ -1065,7 +1066,7 @@ int main (int argc, char **argv)
         ofs3.close();
         
         // TEST SETUP 4: STRRT Algorithm: Variable defined solve time
-        /*results = "";
+        results = "";
         for (int i = 0; i < solve_times.size(); i++)
         {
             results += nc.solve_strrt(solve_times[i], 0) + ", " + std::to_string(nc.execute_path()) + "\n";
@@ -1075,11 +1076,9 @@ int main (int argc, char **argv)
         filePath = "/home/asper/catkin_ws2/logs/data/kinova/results_strrt_target_solve_" + std::to_string(trial) + ".csv";
         std::ofstream ofs4(filePath.c_str(), std::ios_base::out );
         ofs4 << results;
-        ofs4.close();*/
+        ofs4.close();
     }
 
     std::cout << "Testing Complete" << std::endl;
-
-    //ros::spin();
-    std::system("killall -9 rosmaster");
+    std::system("killall -9 rosmaster");*/
 }
