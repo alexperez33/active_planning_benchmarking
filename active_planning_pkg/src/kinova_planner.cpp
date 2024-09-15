@@ -273,6 +273,8 @@ class KinovaPlanner {
     double strrt_goal_travel_time = 0;
     double strrt_solution_found = false;
 
+    tprm::TemporalPRM* _tprm = nullptr;
+
     public:
     KinovaPlanner(ros::NodeHandle *nh) {
 
@@ -301,6 +303,13 @@ class KinovaPlanner {
         g_planning_scene = new planning_scene::PlanningScene(kinematic_model);
     }
 
+    ~KinovaPlanner()
+    {
+        delete _tprm;
+        delete kinematic_state;
+        delete g_planning_scene;
+    }
+
     bool callback_plan_solve(std_srvs::Trigger::Request &req, 
                               std_srvs::Trigger::Response &res)
     {
@@ -317,6 +326,11 @@ class KinovaPlanner {
 
     bool execute_spacetime_path(std_srvs::Trigger::Request &req, 
                                 std_srvs::Trigger::Response &res)
+    {
+        return execute_path();
+    }
+
+    bool execute_path()
     {
         
         double time_prev = 0;
@@ -363,10 +377,14 @@ class KinovaPlanner {
                 }
 
                 // 3. Run collision check function
-                checkForCollisions();
+                bool collision_occurred = !checkForCollisions();
+                if (collision_occurred)
+                {
+                    return false;
+                }
 
                 t += delta;
-                ros::Duration(delta).sleep();
+                //ros::Duration(delta).sleep();
 
             }
 
@@ -429,17 +447,13 @@ class KinovaPlanner {
     void setCurrentJointState(std::vector<double> joint_values, bool set_on_rviz)
     {
 
-        for (int i = 0; i < joint_values.size(); i++)
-            std::cout << joint_values[i] << ", ";
-        std::cout << std::endl;
-
         // set joint group position
         const moveit::core::JointModelGroup* joint_model_group = kinematic_model->getJointModelGroup("arm");
         kinematic_state->setJointGroupPositions(joint_model_group, joint_values);
 
         if (set_on_rviz)
         {
-            std::cout << "setting joint state" << std::endl;
+            //std::cout << "setting joint state" << std::endl;
             // set visual position
             sensor_msgs::JointState joint_state_msg;
             joint_state_msg.name = joint_list;
@@ -452,7 +466,7 @@ class KinovaPlanner {
             pub.publish(joint_state_msg);
         }
 
-        std::cout << "joint state set" << std::endl;
+        //std::cout << "joint state set" << std::endl;
     }
 
     bool checkForCollisions()
@@ -583,6 +597,11 @@ class KinovaPlanner {
         }
     }
 
+    void change_solver(std::string _solver)
+    {
+        current_solver = _solver;
+    }
+
     void define_scenario(std::string _solver,
                          std::vector<double>& _start,
                          std::vector<double>& _goal,
@@ -617,43 +636,69 @@ class KinovaPlanner {
         addFloor(10, 10, -1, 1);
     }
 
-    std::string solve_tprm(bool solve_updated_version, int numSamples, double costEdgeThreshold)
+    std::string solve_tprm(bool solve_updated_version, int numSamples, double costEdgeThreshold, bool resolve=false)
     {
         tprm::HolonomicRobot::movement_speed = 0.20;  // rad/s
         spacetime_path.clear();
 
-        std::srand(4);
         uint dim = 6;
-        tprm::TemporalPRM tprm(g_planning_scene, kinematic_model, kinematic_state, dim, "arm", dim == 12);
+
+        tprm::TemporalPRM* tprm;
+        if (resolve == false)
+        {
+            if (_tprm != nullptr)
+                delete _tprm;
+            
+            _tprm = new tprm::TemporalPRM(g_planning_scene, kinematic_model, kinematic_state, dim, "arm", dim == 12);
+        }
+        else
+        {
+            _tprm->clearObstacles();
+        }
+        tprm = _tprm;
+
         std::cout << "make tprm" << std::endl;
 
         for (int i = 0; i < obstacles.size(); i++)
         {
-            tprm.addDynamicObstacle(std::make_shared<tprm::DynamicSphereObstacle>(obstacles[i].center, obstacles[i].velocity, obstacles[i].radius, obstacles[i].id));
+            tprm->addDynamicObstacle(std::make_shared<tprm::DynamicSphereObstacle>(obstacles[i].center, obstacles[i].velocity, obstacles[i].radius, obstacles[i].id));
         }
 
         ros::Time begin;
         ros::Time end;
-        double placing_samples_time;
-        double edge_build_time;
-        double solve_time;
+        double placing_samples_time = 0;
+        double edge_build_time = 0;
+        double solve_time = 0;
 
-        ///// PLACING SAMPLES //////
-        begin = ros::Time::now();
-        tprm.placeSamples(numSamples);
-        end = ros::Time::now();
+        if (resolve == false)
+        {
+            ///// PLACING SAMPLES //////
+            begin = ros::Time::now();
+            tprm->placeSamples(numSamples);
+            end = ros::Time::now();
+            
+            placing_samples_time = (end - begin).sec + (end - begin).nsec * 1e-9;
+            std::cout << "Placed " << numSamples << " samples in " << placing_samples_time << " seconds" << std::endl;
         
-        placing_samples_time = (end - begin).sec + (end - begin).nsec * 1e-9;
-        std::cout << "Placed " << numSamples << " samples in " << placing_samples_time << " seconds" << std::endl;
 
-        ///// BUILDING PRM //////
-        begin = ros::Time::now();
-        tprm.buildPRM(costEdgeThreshold);
-        end = ros::Time::now();
+            ///// BUILDING PRM //////
+            begin = ros::Time::now();
+            tprm->buildPRM(costEdgeThreshold);
+            end = ros::Time::now();
 
-        edge_build_time = (end - begin).sec + (end - begin).nsec * 1e-9;
-        std::cout << "Added " << tprm.getTemporalGraph().getNumEdges() << " edges in " << edge_build_time << " seconds" << std::endl;
-
+            edge_build_time = (end - begin).sec + (end - begin).nsec * 1e-9;
+            std::cout << "Added " << tprm->getTemporalGraph().getNumEdges() << " edges in " << edge_build_time << " seconds" << std::endl;
+        }
+        else
+        {
+            ///// RECALCULATING TIME AVAILABILITY //////
+            begin = ros::Time::now();
+            tprm->recomputeTimeAvailabilities();
+            end = ros::Time::now();
+            
+            placing_samples_time = (end - begin).sec + (end - begin).nsec * 1e-9;
+            std::cout << "Recalculated Time Availability in " << placing_samples_time << " seconds" << std::endl;
+        }
 
         ///// SOLVING PRM //////
         tprm::VectorNd start_tprm(start_joint_pose);
@@ -665,13 +710,13 @@ class KinovaPlanner {
         begin = ros::Time::now();
         if (solve_updated_version)
         {
-            int start_node_id = tprm.addSample(start_tprm, costEdgeThreshold);
-            int end_node_id = tprm.addSample(end_tprm, costEdgeThreshold);
-            path = tprm.getShortestPath(start_node_id, end_node_id, 0);
+            int start_node_id = tprm->addSample(start_tprm, costEdgeThreshold);
+            int end_node_id = tprm->addSample(end_tprm, costEdgeThreshold);
+            path = tprm->getShortestPath(start_node_id, end_node_id, 0);
         }
         else
         {
-            path = tprm.getShortestPath(start_tprm, end_tprm, 0);
+            path = tprm->getShortestPath(start_tprm, end_tprm, 0);
         }
         end = ros::Time::now();
 
@@ -703,7 +748,7 @@ class KinovaPlanner {
         }
 
         std::string res = std::to_string(numSamples) + ", " + 
-                          std::to_string(tprm.getTemporalGraph().getNumEdges()) + ", " + 
+                          std::to_string(tprm->getTemporalGraph().getNumEdges()) + ", " + 
                           std::to_string(placing_samples_time) + ", " + 
                           std::to_string(edge_build_time) + ", " + 
                           std::to_string(solve_time) + ", " +
@@ -905,6 +950,20 @@ class KinovaPlanner {
     }
 };
 
+std::vector<double> stringToVector(std::string input_string)
+{
+    std::vector<double> vect;
+    // Use std::istringstream to parse the input string
+    std::istringstream iss(input_string);
+    std::string token;
+    while (std::getline(iss, token, ',')) {
+        // Convert each token to an integer and add it to the vector
+        vect.push_back(std::stod(token));
+    }
+
+    return vect;
+}
+
 int main (int argc, char **argv)
 {
 
@@ -927,7 +986,100 @@ int main (int argc, char **argv)
         vel << 0,-0.1,0;
         obstacles.push_back(MovingCircle(pos, 0.04, vel, i));
     }
-    nc.define_scenario("strrt", start, goal, obstacles, false);
+    nc.define_scenario("tprm", start, goal, obstacles, false);
 
-    ros::spin();
+    //////// TESTING ///////////
+    std::vector<int> sample_sizes = {200, 400, 600, 800, 1000, 2000, 4000, 6000};
+    std::vector<double> edge_sizes = {2, 3, 4};
+    std::vector<double> solve_times = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 25, 30};
+    std::vector<double> goal_travel_times = {5, 10, 15, 20, 25, 30, 35, 40};
+    std::string results = "";
+    std::string results_replan = "";
+    std::string filePath = "";
+    
+
+    for (int trial = 0; trial < 10; trial++)
+    {
+
+        // TEST SETUP 1: New TPRM Algorithm
+        /*results = "";
+        results_replan = "";
+        for (int i = 0; i < sample_sizes.size(); i++)
+        {
+            for (int j = 0; j < edge_sizes.size(); j++)
+            {
+                results += nc.solve_tprm(true, sample_sizes[i], edge_sizes[j]) + ", " + std::to_string(nc.execute_path()) +  "\n";
+                std::cout << "--------------------------" << std::endl;
+                results_replan += nc.solve_tprm(true, sample_sizes[i], edge_sizes[j], true) + ", " + std::to_string(nc.execute_path()) + "\n";
+                std::cout << "--------------------------" << std::endl;
+            }
+        }
+
+        filePath = "/home/asper/catkin_ws2/logs/data/kinova/results_new_tprm_" + std::to_string(trial) + ".csv";
+        std::ofstream ofs1(filePath.c_str(), std::ios_base::out );
+        ofs1 << results;
+        ofs1.close();
+
+        filePath = "/home/asper/catkin_ws2/logs/data/kinova/results_new_tprm_resolve_" + std::to_string(trial) + ".csv";
+        std::ofstream ofs1_resolve(filePath.c_str(), std::ios_base::out );
+        ofs1_resolve << results_replan;
+        ofs1_resolve.close();
+
+        // TEST SETUP 2: Original TPRM Algorithm
+        results = "";
+        results_replan = "";
+        for (int i = 0; i < sample_sizes.size(); i++)
+        {
+            for (int j = 0; j < edge_sizes.size(); j++)
+            {
+                results += nc.solve_tprm(false, sample_sizes[i], edge_sizes[j]) + ", " + std::to_string(nc.execute_path()) + "\n";
+                std::cout << "--------------------------" << std::endl;
+                results_replan += nc.solve_tprm(false, sample_sizes[i], edge_sizes[j], true) + ", " + std::to_string(nc.execute_path()) + "\n";
+                std::cout << "--------------------------" << std::endl;
+            }
+        }
+
+        filePath = "/home/asper/catkin_ws2/logs/data/kinova/results_orig_tprm_" + std::to_string(trial) + ".csv";
+        std::ofstream ofs2(filePath.c_str(), std::ios_base::out );
+        ofs2 << results;
+        ofs2.close();
+
+        filePath = "/home/asper/catkin_ws2/logs/data/kinova/results_orig_tprm_resolve_" + std::to_string(trial) + ".csv";
+        std::ofstream ofs2_resolve(filePath.c_str(), std::ios_base::out );
+        ofs2_resolve << results_replan;
+        ofs2_resolve.close();*/
+
+        // TEST SETUP 3: STRRT Algorithm: Constant max solve time, Variable target execution time
+        nc.change_solver("strrt");
+
+        results = "";
+        for (int i = 0; i < goal_travel_times.size(); i++)
+        {
+            results += nc.solve_strrt(30, goal_travel_times[i]) + ", " + std::to_string(nc.execute_path()) + "\n";
+            std::cout << "--------------------------" << std::endl;
+        }
+
+        filePath = "/home/asper/catkin_ws2/logs/data/kinova/results_strrt_target_exec_" + std::to_string(trial) + ".csv";
+        std::ofstream ofs3(filePath.c_str(), std::ios_base::out );
+        ofs3 << results;
+        ofs3.close();
+        
+        // TEST SETUP 4: STRRT Algorithm: Variable defined solve time
+        /*results = "";
+        for (int i = 0; i < solve_times.size(); i++)
+        {
+            results += nc.solve_strrt(solve_times[i], 0) + ", " + std::to_string(nc.execute_path()) + "\n";
+            std::cout << "--------------------------" << std::endl;
+        }
+
+        filePath = "/home/asper/catkin_ws2/logs/data/kinova/results_strrt_target_solve_" + std::to_string(trial) + ".csv";
+        std::ofstream ofs4(filePath.c_str(), std::ios_base::out );
+        ofs4 << results;
+        ofs4.close();*/
+    }
+
+    std::cout << "Testing Complete" << std::endl;
+
+    //ros::spin();
+    std::system("killall -9 rosmaster");
 }

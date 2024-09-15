@@ -271,6 +271,8 @@ class PandaPlanner {
     double strrt_goal_travel_time = 0;
     double strrt_solution_found = false;
 
+    tprm::TemporalPRM* _tprm = nullptr;
+
     public:
     PandaPlanner(ros::NodeHandle *nh) {
 
@@ -296,6 +298,13 @@ class PandaPlanner {
         g_planning_scene = new planning_scene::PlanningScene(kinematic_model);
     }
 
+    ~PandaPlanner()
+    {
+        delete _tprm;
+        delete kinematic_state;
+        delete g_planning_scene;
+    }
+
     bool callback_plan_solve(std_srvs::Trigger::Request &req, 
                               std_srvs::Trigger::Response &res)
     {
@@ -312,6 +321,11 @@ class PandaPlanner {
 
     bool execute_spacetime_path(std_srvs::Trigger::Request &req, 
                                 std_srvs::Trigger::Response &res)
+    {
+        return execute_path();
+    }
+
+    bool execute_path()
     {
         
         double time_prev = 0;
@@ -358,10 +372,14 @@ class PandaPlanner {
                 }
 
                 // 3. Run collision check function
-                checkForCollisions();
+                bool collision_occurred = !checkForCollisions();
+                if (collision_occurred)
+                {
+                    return false;
+                }
 
                 t += delta;
-                ros::Duration(delta).sleep();
+                //ros::Duration(delta).sleep();
 
             }
 
@@ -385,7 +403,7 @@ class PandaPlanner {
 
         if (set_on_rviz)
         {
-            std::cout << "setting joint state" << std::endl;
+            //std::cout << "setting joint state" << std::endl;
             // set visual position
             sensor_msgs::JointState joint_state_msg;
             joint_state_msg.name = joint_list;
@@ -396,7 +414,7 @@ class PandaPlanner {
             pub.publish(joint_state_msg);
         }
 
-        std::cout << "joint state set" << std::endl;
+        //std::cout << "joint state set" << std::endl;
     }
 
     bool checkForCollisions()
@@ -562,43 +580,74 @@ class PandaPlanner {
 
     }
 
-    std::string solve_tprm(bool solve_updated_version, int numSamples, double costEdgeThreshold)
+    void change_solver(std::string _solver)
+    {
+        current_solver = _solver;
+    }
+
+    std::string solve_tprm(bool solve_updated_version, int numSamples, double costEdgeThreshold, bool resolve=false)
     {
         tprm::HolonomicRobot::movement_speed = 0.20;  // rad/s
         spacetime_path.clear();
 
-        std::srand(4);
         uint dim = 7;
-        tprm::TemporalPRM tprm(g_planning_scene, kinematic_model, kinematic_state, dim, "panda_arm", false);
+        
+        tprm::TemporalPRM* tprm;
+        if (resolve == false)
+        {
+            if (_tprm != nullptr)
+                delete _tprm;
+            
+            _tprm = new tprm::TemporalPRM(g_planning_scene, kinematic_model, kinematic_state, dim, "panda_arm", false);
+        }
+        else
+        {
+            _tprm->clearObstacles();
+        }
+        tprm = _tprm;
+
         std::cout << "make tprm" << std::endl;
 
         for (int i = 0; i < obstacles.size(); i++)
         {
-            tprm.addDynamicObstacle(std::make_shared<tprm::DynamicSphereObstacle>(obstacles[i].center, obstacles[i].velocity, obstacles[i].radius, obstacles[i].id));
+            tprm->addDynamicObstacle(std::make_shared<tprm::DynamicSphereObstacle>(obstacles[i].center, obstacles[i].velocity, obstacles[i].radius, obstacles[i].id));
         }
 
         ros::Time begin;
         ros::Time end;
-        double placing_samples_time;
-        double edge_build_time;
-        double solve_time;
+        double placing_samples_time = 0;
+        double edge_build_time = 0;
+        double solve_time = 0;
 
-        ///// PLACING SAMPLES //////
-        begin = ros::Time::now();
-        tprm.placeSamples(numSamples);
-        end = ros::Time::now();
+        if (resolve == false)
+        {
+            ///// PLACING SAMPLES //////
+            begin = ros::Time::now();
+            tprm->placeSamples(numSamples);
+            end = ros::Time::now();
+            
+            placing_samples_time = (end - begin).sec + (end - begin).nsec * 1e-9;
+            std::cout << "Placed " << numSamples << " samples in " << placing_samples_time << " seconds" << std::endl;
         
-        placing_samples_time = (end - begin).sec + (end - begin).nsec * 1e-9;
-        std::cout << "Placed " << numSamples << " samples in " << placing_samples_time << " seconds" << std::endl;
 
-        ///// BUILDING PRM //////
-        begin = ros::Time::now();
-        tprm.buildPRM(costEdgeThreshold);
-        end = ros::Time::now();
+            ///// BUILDING PRM //////
+            begin = ros::Time::now();
+            tprm->buildPRM(costEdgeThreshold);
+            end = ros::Time::now();
 
-        edge_build_time = (end - begin).sec + (end - begin).nsec * 1e-9;
-        std::cout << "Added " << tprm.getTemporalGraph().getNumEdges() << " edges in " << edge_build_time << " seconds" << std::endl;
-
+            edge_build_time = (end - begin).sec + (end - begin).nsec * 1e-9;
+            std::cout << "Added " << tprm->getTemporalGraph().getNumEdges() << " edges in " << edge_build_time << " seconds" << std::endl;
+        }
+        else
+        {
+            ///// RECALCULATING TIME AVAILABILITY //////
+            begin = ros::Time::now();
+            tprm->recomputeTimeAvailabilities();
+            end = ros::Time::now();
+            
+            placing_samples_time = (end - begin).sec + (end - begin).nsec * 1e-9;
+            std::cout << "Recalculated Time Availability in " << placing_samples_time << " seconds" << std::endl;
+        }
 
         ///// SOLVING PRM //////
         tprm::VectorNd start_tprm(start_joint_pose);
@@ -610,13 +659,13 @@ class PandaPlanner {
         begin = ros::Time::now();
         if (solve_updated_version)
         {
-            int start_node_id = tprm.addSample(start_tprm, costEdgeThreshold);
-            int end_node_id = tprm.addSample(end_tprm, costEdgeThreshold);
-            path = tprm.getShortestPath(start_node_id, end_node_id, 0);
+            int start_node_id = tprm->addSample(start_tprm, costEdgeThreshold);
+            int end_node_id = tprm->addSample(end_tprm, costEdgeThreshold);
+            path = tprm->getShortestPath(start_node_id, end_node_id, 0);
         }
         else
         {
-            path = tprm.getShortestPath(start_tprm, end_tprm, 0);
+            path = tprm->getShortestPath(start_tprm, end_tprm, 0);
         }
         end = ros::Time::now();
 
@@ -648,7 +697,7 @@ class PandaPlanner {
         }
 
         std::string res = std::to_string(numSamples) + ", " + 
-                          std::to_string(tprm.getTemporalGraph().getNumEdges()) + ", " + 
+                          std::to_string(tprm->getTemporalGraph().getNumEdges()) + ", " + 
                           std::to_string(placing_samples_time) + ", " + 
                           std::to_string(edge_build_time) + ", " + 
                           std::to_string(solve_time) + ", " +
@@ -665,7 +714,7 @@ class PandaPlanner {
 
         std::cout << "Entering strrt benchmark" << std::endl;
         // set maximum velocity
-        double vMax = 0.2;
+        double vMax = 0.4;
         double dim = 7;
         strrt_goal_travel_time = goal_travel_time;
 
@@ -703,6 +752,7 @@ class PandaPlanner {
         {
             start->as<ompl::base::SpaceTimeStateSpace::StateType>()->as<ompl::base::RealVectorStateSpace::StateType>(0)->values[i] =
                 start_joint_pose[i];
+            // Default start time is zero, this can be modified
         }
 
         for (int i = 0; i < goal_joint_pose.size(); i++)
@@ -873,62 +923,100 @@ int main (int argc, char **argv)
         vel << 0,-0.1,0;
         obstacles.push_back(MovingCircle(pos, 0.04, vel, i));
     }
-    nc.define_scenario("strrt", start, goal, obstacles, false);
-
+    nc.define_scenario("tprm", start, goal, obstacles, false);
+    
     //////// TESTING ///////////
-    std::vector<int> sample_sizes = {200, 400, 600, 800, 1000, 2000, 4000, 6000, 8000};
-    std::vector<double> edge_sizes = {1, 2, 3, 4};
-    std::vector<double> solve_times = {60};
+    std::cout << "STARTING TEST" << std::endl;
+    std::vector<int> sample_sizes = {200, 400, 600, 800, 1000, 2000, 4000, 6000};
+    std::vector<double> edge_sizes = {2, 3, 4};
+    std::vector<double> solve_times = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 25, 30};
     std::vector<double> goal_travel_times = {5, 10, 15, 20, 25, 30, 35, 40};
     std::string results = "";
+    std::string results_replan = "";
     std::string filePath = "";
     
-    // TEST SETUP 1: New TPRM Algorithm
-    /*
-    for (int i = 0; i < sample_sizes.size(); i++)
+    for (int trial = 0; trial < 10; trial++)
     {
-        for (int j = 0; j < edge_sizes.size(); j++)
+
+        // TEST SETUP 1: New TPRM Algorithm
+        /*results = "";
+        results_replan = "";
+        for (int i = 0; i < sample_sizes.size(); i++)
         {
-            results += nc.solve_tprm(true, sample_sizes[i], edge_sizes[j]) + "\n";
+            for (int j = 0; j < edge_sizes.size(); j++)
+            {
+                results += nc.solve_tprm(true, sample_sizes[i], edge_sizes[j]) + ", " + std::to_string(nc.execute_path()) + "\n";
+                std::cout << "--------------------------" << std::endl;
+                results_replan += nc.solve_tprm(true, sample_sizes[i], edge_sizes[j], true) + ", " + std::to_string(nc.execute_path()) + "\n";
+                std::cout << "--------------------------" << std::endl;
+            }
+        }
+
+        filePath = "/home/asper/catkin_ws2/logs/data/panda/results_new_tprm_" + std::to_string(trial) + ".csv";
+        std::ofstream ofs1(filePath.c_str(), std::ios_base::out);
+        ofs1 << results;
+        ofs1.close();
+
+        filePath = "/home/asper/catkin_ws2/logs/data/panda/results_new_tprm_resolve_" + std::to_string(trial) + ".csv";
+        std::ofstream ofs1_resolve(filePath.c_str(), std::ios_base::out );
+        ofs1_resolve << results_replan;
+        ofs1_resolve.close();
+
+        // TEST SETUP 2: Original TPRM Algorithm
+        results = "";
+        results_replan = "";
+        for (int i = 0; i < sample_sizes.size(); i++)
+        {
+            for (int j = 0; j < edge_sizes.size(); j++)
+            {
+                results += nc.solve_tprm(false, sample_sizes[i], edge_sizes[j]) + ", " + std::to_string(nc.execute_path()) + "\n";
+                std::cout << "--------------------------" << std::endl;
+                results_replan += nc.solve_tprm(false, sample_sizes[i], edge_sizes[j], true) + ", " + std::to_string(nc.execute_path()) + "\n";
+                std::cout << "--------------------------" << std::endl;
+            }
+        }
+
+        filePath = "/home/asper/catkin_ws2/logs/data/panda/results_orig_tprm_" + std::to_string(trial) + ".csv";
+        std::ofstream ofs2(filePath.c_str(), std::ios_base::out );
+        ofs2 << results;
+        ofs2.close();
+
+        filePath = "/home/asper/catkin_ws2/logs/data/panda/results_orig_tprm_resolve_" + std::to_string(trial) + ".csv";
+        std::ofstream ofs2_resolve(filePath.c_str(), std::ios_base::out );
+        ofs2_resolve << results_replan;
+        ofs2_resolve.close();*/
+
+        // TEST SETUP 3: STRRT Algorithm: Constant max solve time, Variable target execution time
+        nc.change_solver("strrt");
+
+        results = "";
+        for (int i = 0; i < goal_travel_times.size(); i++)
+        {
+            results += nc.solve_strrt(30, goal_travel_times[i]) + ", " + std::to_string(nc.execute_path()) + "\n";
             std::cout << "--------------------------" << std::endl;
         }
-    }
 
-    filePath = "/home/asper/catkin_ws2/results1.csv";
-    std::ofstream ofs1(filePath.c_str(), std::ios_base::out | std::ios_base::app );
-    ofs1 << results;
-    ofs1.close();
-
-    // TEST SETUP 2: Original TPRM Algorithm
-    results = "";
-    for (int i = 0; i < sample_sizes.size(); i++)
-    {
-        for (int j = 0; j < edge_sizes.size(); j++)
+        filePath = "/home/asper/catkin_ws2/logs/data/panda/results_strrt_target_exec_" + std::to_string(trial) + ".csv";
+        std::ofstream ofs3(filePath.c_str(), std::ios_base::out );
+        ofs3 << results;
+        ofs3.close();
+        
+        // TEST SETUP 4: STRRT Algorithm: Variable defined solve time
+        /*results = "";
+        for (int i = 0; i < solve_times.size(); i++)
         {
-            results += nc.solve_tprm(false, sample_sizes[i], edge_sizes[j]) + "\n";
+            results += nc.solve_strrt(solve_times[i], 0) + ", " + std::to_string(nc.execute_path()) + "\n";
             std::cout << "--------------------------" << std::endl;
         }
+
+        filePath = "/home/asper/catkin_ws2/logs/data/panda/results_strrt_target_solve_" + std::to_string(trial) + ".csv";
+        std::ofstream ofs4(filePath.c_str(), std::ios_base::out );
+        ofs4 << results;
+        ofs4.close();*/
     }
 
-    filePath = "/home/asper/catkin_ws2/results2.csv";
-    std::ofstream ofs2(filePath.c_str(), std::ios_base::out | std::ios_base::app );
-    ofs2 << results;
-    ofs2.close();*/
 
-    // TEST SETUP 3: STRRT Algorithm
+    std::cout << "Testing Complete" << std::endl;
 
-    /*results = "";
-    for (int i = 0; i < goal_travel_times.size(); i++)
-    {
-        results += nc.solve_strrt(solve_times[0], goal_travel_times[i]) + "\n";
-        std::cout << "--------------------------" << std::endl;
-    }
-
-    filePath = "/home/asper/catkin_ws2/results3.csv";
-    std::ofstream ofs3(filePath.c_str(), std::ios_base::out | std::ios_base::app );
-    ofs3 << results;
-    ofs3.close();*/
-
-
-    ros::spin();
+    std::system("killall -9 rosmaster");
 }

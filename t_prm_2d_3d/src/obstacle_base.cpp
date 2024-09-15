@@ -36,8 +36,33 @@
  * Authors: Matthias Busenhart
  *********************************************************************/
 
-#include <tprm/config.h>
+#include <tprm/obstacle_base.h>
 
 namespace tprm {
-double HolonomicRobot::movement_speed = 0.4;
+
+Obstacle::Obstacle(const Vector3d& COM) : m_COM(COM) {}
+
+Vector3d Obstacle::getCOM() const {
+    return m_COM;
+}
+void Obstacle::setCOM(const Vector3d& COM) {
+    m_COM = COM;
+}
+
+StaticObstacle::StaticObstacle(const Vector3d& COM) : Obstacle(COM) {}
+
+DynamicObstacle::DynamicObstacle(const Vector3d& COM, const Vector3d& velocity) : Obstacle(COM), m_velocity(velocity) {}
+
+Vector3d DynamicObstacle::getVelocity() const {
+    return m_velocity;
+}
+
+void DynamicObstacle::setVelocity(const Vector3d& velocity) {
+    m_velocity = velocity;
+}
+
+Vector3d DynamicObstacle::getCOM(double time) const {
+    return m_COM + m_velocity * time;
+}
+
 } /* namespace tprm */

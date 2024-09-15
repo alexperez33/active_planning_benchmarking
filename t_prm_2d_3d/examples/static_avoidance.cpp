@@ -36,8 +36,36 @@
  * Authors: Matthias Busenhart
  *********************************************************************/
 
-#include <tprm/config.h>
+#include <tprm/obstacle_impl.h>
+#include <tprm/temporal_prm.h>
 
-namespace tprm {
-double HolonomicRobot::movement_speed = 0.4;
-} /* namespace tprm */
+#include <iostream>
+
+int main(int argc, char const* argv[]) {
+    tprm::HolonomicRobot::movement_speed = 0.1;  // m/s
+
+    std::srand(1);
+
+    tprm::TemporalPRM tprm;
+
+    tprm.addStaticObstacle(std::make_shared<tprm::StaticSphereObstacle>(tprm::Vector3d::Constant(0.5), 0.25));
+
+    tprm.placeSamples(100);
+
+    tprm.buildPRM(0.25);
+
+    std::cout << "Number of nodes: " << tprm.getTemporalGraph().getNumNodes() << std::endl;
+    std::cout << "Number of edges: " << tprm.getTemporalGraph().getNumEdges() << std::endl;
+
+    auto path = tprm.getShortestPath(tprm::Vector3d(0, 0, 0), tprm::Vector3d(1., 1., 1.), 0.5);
+
+    if (path.empty()) {
+        std::cout << "No path found" << std::endl;
+    } else {
+        for (auto& node : path) {
+            std::cout << "Node: " << node.position.transpose() << " at time " << node.time << std::endl;
+        }
+    }
+
+    return 0;
+}

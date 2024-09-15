@@ -80,6 +80,12 @@ void TemporalPRM::addDynamicObstacle(const std::shared_ptr<DynamicObstacle>& obs
     m_dynamicObstacles.push_back(obstacle);
 }
 
+void TemporalPRM::clearObstacles()
+{
+    m_staticObstacles.clear();
+    m_dynamicObstacles.clear();
+}
+
 void TemporalPRM::placeSamples(int numNodes) {
     std::cout << "placing samples" << std::endl;
     
@@ -262,8 +268,13 @@ std::vector<TimeAvailability> TemporalPRM::discreteAvailableToTimeInvervals(std:
 
 std::vector<PathResultEntry> TemporalPRM::getShortestPath(const VectorNd& start, const VectorNd& goal, double timeStart) const {
     
-    int closest_start_id = m_graph.getClosestNode(start, timeStart, m_dynamicObstacles);
+    int closest_start_id = m_graph.getClosestNode(start, timeStart, m_dynamicObstacles, false);
     int closest_goal_id = m_graph.getClosestNode(goal, timeStart, m_dynamicObstacles, false);
+
+    if (closest_start_id == -1 || closest_goal_id == -1)
+    {
+        return {};
+    }
 
     const TemporalGraphNode& start_node = m_graph.getNode(closest_start_id);
     const TemporalGraphNode& goal_node = m_graph.getNode(closest_goal_id);

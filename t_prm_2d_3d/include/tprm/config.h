@@ -36,8 +36,32 @@
  * Authors: Matthias Busenhart
  *********************************************************************/
 
-#include <tprm/config.h>
+#ifndef __TPRM_CONFIG_H__
+#define __TPRM_CONFIG_H__
+
+#include <Eigen/Core>
 
 namespace tprm {
-double HolonomicRobot::movement_speed = 0.4;
+/**
+ * @brief Type definition for a vector of Eigen::Vector3d. Used everywhere.
+ */
+using Vector3d = Eigen::Vector3d;
+
+/**
+ * @brief Parameters for the Robot
+ * 
+ * This class contains all the parameters for the holonomic robot assumed in the planning problem.
+ */
+class HolonomicRobot {
+public:
+    /**
+     * @brief Movement speed in all directions. [m/s]
+     * 
+     * Default value: 0.5 m/s
+     */
+    static double movement_speed;
+};
+
 } /* namespace tprm */
+
+#endif /* __TPRM_CONFIG_H__ */

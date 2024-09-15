@@ -23,7 +23,7 @@
   </group>
 
   <arg name="command_args" value="-d $(find active_planning_pkg)/launch/moveit.rviz" />
-  <node name="$(anon rviz)" pkg="rviz" type="rviz" respawn="false" args="$(arg command_args)" output="screen" />
+  <!--<node name="$(anon rviz)" pkg="rviz" type="rviz" respawn="false" args="$(arg command_args)" output="screen" />-->
 
   <node name="panda_planner" pkg="active_planning_pkg" type="panda_planner"/>
 

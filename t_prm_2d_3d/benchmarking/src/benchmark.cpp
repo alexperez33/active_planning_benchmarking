@@ -36,8 +36,11 @@
  * Authors: Matthias Busenhart
  *********************************************************************/
 
-#include <tprm/config.h>
+#include <benchmarking/benchmark.h>
 
-namespace tprm {
-double HolonomicRobot::movement_speed = 0.4;
-} /* namespace tprm */
+namespace benchmarking {
+
+Benchmark::Benchmark(const std::string& name, int num_runs) : name(name), m_num_runs(num_runs) {}
+Benchmark::~Benchmark() {}
+
+}  // namespace benchmarking

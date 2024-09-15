@@ -41,10 +41,7 @@
 
 #include <tprm/obstacle_base.h>
 #include <tprm/temporal_graph.h>
-#include <moveit/planning_scene/planning_scene.h>
-#include <moveit/robot_model/robot_model.h>
-#include <moveit/robot_state/robot_state.h>
-#include <iostream>
+
 #include <memory>
 
 namespace tprm {
@@ -60,8 +57,8 @@ struct PathResultEntry {
      * @param position The position of the entry.
      * @param time The time at which the position is reached.
      */
-    PathResultEntry(VectorNd position, double time) : position(position), time(time) {}
-    VectorNd position;  ///< The position of the entry.
+    PathResultEntry(Vector3d position, double time) : position(position), time(time) {}
+    Vector3d position;  ///< The position of the entry.
     double time;        ///< The time at which the position is reached.
 };
 
@@ -75,19 +72,12 @@ public:
      */
     TemporalPRM() = default;
 
-    TemporalPRM(planning_scene::PlanningScene* _g_planning_scene, 
-                moveit::core::RobotModelConstPtr _kinematic_model, 
-                moveit::core::RobotState* _kinematic_state,
-                uint dimensions,
-                std::string _robot_group,
-                bool _dual_arm);
-
     /**
      * @brief Constructor.
      * @param environmentMin The minimum coordinates of the environment.
      * @param environmentMax The maximum coordinates of the environment.
      */
-    TemporalPRM(const VectorNd& environmentMin, const VectorNd& environmentMax);
+    TemporalPRM(const Vector3d& environmentMin, const Vector3d& environmentMax);
 
     /**
      * @brief Destructor.
@@ -98,13 +88,13 @@ public:
      * @brief Set the minimum coordinates of the environment.
      * @param environmentMin The minimum coordinates of the environment.
      */
-    void setEnvironmentMin(const VectorNd& environmentMin);
+    void setEnvironmentMin(const Vector3d& environmentMin);
 
     /**
      * @brief Set the maximum coordinates of the environment.
      * @param environmentMax The maximum coordinates of the environment.
      */
-    void setEnvironmentMax(const VectorNd& environmentMax);
+    void setEnvironmentMax(const Vector3d& environmentMax);
 
     /**
      * @brief Add a static obstacle to the environment.
@@ -119,19 +109,12 @@ public:
     void addDynamicObstacle(const std::shared_ptr<DynamicObstacle>& obstacle);
 
     /**
-     * @brief Clear obstacles from the environment
-     */
-    void clearObstacles();
-
-    /**
      * @brief Place sample points on the environment.
      * 
      * @attention Static obstacles must be added before calling this!
      * @param numSamples The number of sample points to place.
      */
     void placeSamples(int numSamples);
-
-    int addSample(VectorNd _sample, double costEdgeThreshold);
 
     /**
      * @brief Connect the sample points.
@@ -162,9 +145,7 @@ public:
      * @param timeStart The time at which to start movement at the start position.
      * @return The found path (positions and respective arrival times).
      */
-    std::vector<PathResultEntry> getShortestPath(const VectorNd& start, const VectorNd& goal, double timeStart = 0.0) const;
-
-    std::vector<PathResultEntry> getShortestPath(const int start, const int goal, double timeStart) const;
+    std::vector<PathResultEntry> getShortestPath(const Vector3d& start, const Vector3d& goal, double timeStart = 0.0) const;
 
 private:
     /**
@@ -172,30 +153,16 @@ private:
      * @param position The position.
      * @return The time availability (set of intervals).
      */
-    std::vector<TimeAvailability> getTimeAvailability(const VectorNd& position) const;
+    std::vector<TimeAvailability> getTimeAvailability(const Vector3d& position) const;
 
-    void update_planning_scene_robot(std::vector<double> joint_values) const;
-
-    void update_planning_scene_obstacles(Eigen::Vector3d position, float r, int id) const;
-
-    bool checkForCollisions() const;
-
-    std::vector<TimeAvailability> discreteAvailableToTimeInvervals(std::vector<double> discreteAvailabilities, double time_increment, double time_limit) const;
-
+private:
     TemporalGraph m_graph;  ///< The underlying graph.
 
-    uint dim = 2; // The number of dimensions the graph has
-    bool dual_arm = false;
-    std::string robot_group;
-    VectorNd m_environmentMin;  ///< The minimum coordinates of the environment.
-    VectorNd m_environmentMax;  ///< The maximum coordinates of the environment.
+    Vector3d m_environmentMin = Vector3d(0., 0., 0.);  ///< The minimum coordinates of the environment.
+    Vector3d m_environmentMax = Vector3d(1., 1., 1.);  ///< The maximum coordinates of the environment.
 
     std::vector<std::shared_ptr<StaticObstacle>> m_staticObstacles;    ///< The static obstacles.
     std::vector<std::shared_ptr<DynamicObstacle>> m_dynamicObstacles;  ///< The dynamic obstacles.
-
-    planning_scene::PlanningScene* g_planning_scene;
-    moveit::core::RobotModelConstPtr kinematic_model;
-    moveit::core::RobotState* kinematic_state;
 };
 
 } /* namespace tprm */

@@ -39,5 +39,5 @@
 #include <tprm/config.h>
 
 namespace tprm {
-double HolonomicRobot::movement_speed = 0.4;
+double HolonomicRobot::movement_speed = 0.5;
 } /* namespace tprm */
