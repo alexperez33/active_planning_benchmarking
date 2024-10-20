@@ -1032,7 +1032,7 @@ int main (int argc, char **argv)
         filePath = "/home/asper/catkin_ws2/logs/data/kinova/results_new_tprm_resolve_" + std::to_string(trial) + ".csv";
         std::ofstream ofs1_resolve(filePath.c_str(), std::ios_base::out );
         ofs1_resolve << results_replan;
-        ofs1_resolve.close();*/
+        ofs1_resolve.close();
 
         // TEST SETUP 2: Original TPRM Algorithm
         results = "";
@@ -1080,7 +1080,7 @@ int main (int argc, char **argv)
         filePath = "/home/asper/catkin_ws2/logs/data/kinova/results_strrt_target_exec_" + std::to_string(trial) + ".csv";
         std::ofstream ofs3(filePath.c_str(), std::ios_base::out );
         ofs3 << results;
-        ofs3.close();*/
+        ofs3.close();
         
         // TEST SETUP 4: STRRT Algorithm: Variable defined solve time
         results = "";

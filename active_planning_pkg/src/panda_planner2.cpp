@@ -970,7 +970,7 @@ int main (int argc, char **argv)
         filePath = "/home/asper/catkin_ws2/logs/data/panda/results_new_tprm_resolve_" + std::to_string(trial) + ".csv";
         std::ofstream ofs1_resolve(filePath.c_str(), std::ios_base::out );
         ofs1_resolve << results_replan;
-        ofs1_resolve.close();*/
+        ofs1_resolve.close();
 
         // TEST SETUP 2: Original TPRM Algorithm
         results = "";
@@ -997,7 +997,7 @@ int main (int argc, char **argv)
         ofs2_resolve.close();
 
         // TEST SETUP 3: STRRT Algorithm: Constant max solve time, Variable target execution time
-        /*nc.change_solver("strrt");
+        nc.change_solver("strrt");
 
         results = "";
         for (int i = 0; i < goal_travel_times.size(); i++)
@@ -1019,7 +1019,7 @@ int main (int argc, char **argv)
         filePath = "/home/asper/catkin_ws2/logs/data/panda/results_strrt_target_exec_" + std::to_string(trial) + ".csv";
         std::ofstream ofs3(filePath.c_str(), std::ios_base::out );
         ofs3 << results;
-        ofs3.close();*/
+        ofs3.close();
         
         // TEST SETUP 4: STRRT Algorithm: Variable defined solve time
         results = "";

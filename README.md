@@ -7,6 +7,7 @@ The two algorithms are T-PRM and ST-RRT*.
 To test out the code, do the following:
 1. Clone repository in the source directory of a catkin workspace. (Ex. ~/catkin_ws/src)
 2. Ensure ROS noetic is installed and sourced (source /opt/ros/noetic/setup.bash)
+	 - Note, you will need to install ros-noetic-moveit-core and perhaps some other moveit libraries.
 3. Enter ~/catkin_ws and compile (catkin_make)
 4. There may be some ROS libraries that you need to install. Ensure to install these libraries as needed.
 5. Source the ROS workspace (source ~/catkin_ws/devel/setup.bash)
