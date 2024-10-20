@@ -1,0 +1,35 @@
+Below is a description of the T-PRM pipeline and the changes that were made:
+
+1. Add dynamic obstacles
+2. Place Samples
+    - Description: Given a specified number of samples and restrictions on the state space,
+    n random samples are added to the m_graph object. Time availabilities are computed for each
+    sample that is placed.
+    - Things changed: 
+        + Expanded sample definition to be dimension agnostic.
+        + Added to getTimeAvailability() definition. Given a certain sample, this function
+          checks once a second for the first 30 seconds of obstacle movement for any 
+          collisions with obstacles. The obstacle path interpolation can be modified
+          to have smaller time steps. The amount of time in the future checked (30), can
+          also be changed based on how much knowledge in the future is actually available.
+          However, the less discretized the obstacle path, the more inaccurate the time availability
+          reported.
+3. Build PRM & Calculate Time Availabilities
+    - Description: Given a specified costEdgeThreshold, edges are formed between the nodes/samples
+    of the graph as long as the edge length is less than the costEdgeThreshold.
+    - Things changed: Expanded edge cost definition to be dimension agnostic.
+4. Solve PRM
+    - Description: Given a start node and a goal node, this section of the algorithm computes the
+    T-PRM version of the A* algorithm that accounts for time availabilites.
+    - Things changed:
+        + Created additional check in A* called interpolation_collision_check(). This takes the
+        two nodes (current and successor) being examined at the moment. The edge between the nodes
+        is discretized into 100 points that are checked as the motion of the actor is simulated
+        through these points. The amount of discretization done is a factor that can be changed.
+
+Collision checking changes in general:
+- Previous collision checking used a mathematical formula with the following assumptions:
+    + Obstacles only moved in a straight line.
+    + If an actor is stationary, an obstacle can only come into contact with the actor for one region in time.
+- Current collision checking uses MoveIt Planning Scene Library to check for collisions.
+    + Interpolation is used to explore time availabilities.

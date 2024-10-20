@@ -217,7 +217,7 @@ std::vector<GraphPathResultEntry> TemporalGraph::getShortestPath(int start_node_
 
         tprm::TemporalGraphNode current_node = getNode(current_id);
         tprm::TemporalGraphNode next_node = getNode(successor_id);
-        if ( ! interpolation_collision_check(current_node.position, next_node.position, current_time, edge_time, obstacles) )
+        if ( interpolate_edges && ! interpolation_collision_check(current_node.position, next_node.position, current_time, edge_time, obstacles) )
             return;
 
         double tentative_g_cost = g_costs[current_id].value + getEdgeCost(edge);

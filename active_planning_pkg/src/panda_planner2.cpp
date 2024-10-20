@@ -707,7 +707,7 @@ class PandaPlanner {
         return res;
     }
 
-    std::string solve_strrt(double max_solve_time, double goal_travel_time)
+    std::string solve_strrt(double max_solve_time, double goal_travel_time, double range=4, double batchSize=512, double timeBoundFactorIncrease=2)
     {
         spacetime_path.clear();
         strrt_solution_found = false;
@@ -768,7 +768,10 @@ class PandaPlanner {
         auto *strrtStar = new ompl::geometric::STRRTstar(si);
 
         // set planner parameters
-        strrtStar->setRange(vMax);
+        strrtStar->setRange(range);
+        strrtStar->setInitialTimeBoundFactor(timeBoundFactorIncrease);
+        strrtStar->setTimeBoundFactorIncrease(timeBoundFactorIncrease);
+        strrtStar->setBatchSize(batchSize);
 
         // set the used planner
         ss.setPlanner(ob::PlannerPtr(strrtStar));
@@ -929,8 +932,14 @@ int main (int argc, char **argv)
     std::cout << "STARTING TEST" << std::endl;
     std::vector<int> sample_sizes = {200, 400, 600, 800, 1000, 2000, 4000, 6000};
     std::vector<double> edge_sizes = {2, 3, 4};
+
     std::vector<double> solve_times = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 25, 30};
-    std::vector<double> goal_travel_times = {5, 10, 15, 20, 25, 30, 35, 40};
+
+    std::vector<double> goal_travel_times = {5, 10, 15, 20, 25, 30};
+    std::vector<double> ranges = {2, 3, 4};
+    std::vector<double> initialBatchSizes = {512, 1024, 2048};
+    std::vector<double> timeBoundFactorIncrease = {2, 4, 6, 8};
+
     std::string results = "";
     std::string results_replan = "";
     std::string filePath = "";
@@ -960,7 +969,7 @@ int main (int argc, char **argv)
         filePath = "/home/asper/catkin_ws2/logs/data/panda/results_new_tprm_resolve_" + std::to_string(trial) + ".csv";
         std::ofstream ofs1_resolve(filePath.c_str(), std::ios_base::out );
         ofs1_resolve << results_replan;
-        ofs1_resolve.close();
+        ofs1_resolve.close();*/
 
         // TEST SETUP 2: Original TPRM Algorithm
         results = "";
@@ -971,8 +980,8 @@ int main (int argc, char **argv)
             {
                 results += nc.solve_tprm(false, sample_sizes[i], edge_sizes[j]) + ", " + std::to_string(nc.execute_path()) + "\n";
                 std::cout << "--------------------------" << std::endl;
-                results_replan += nc.solve_tprm(false, sample_sizes[i], edge_sizes[j], true) + ", " + std::to_string(nc.execute_path()) + "\n";
-                std::cout << "--------------------------" << std::endl;
+                //results_replan += nc.solve_tprm(false, sample_sizes[i], edge_sizes[j], true) + ", " + std::to_string(nc.execute_path()) + "\n";
+                //std::cout << "--------------------------" << std::endl;
             }
         }
 
@@ -984,22 +993,32 @@ int main (int argc, char **argv)
         filePath = "/home/asper/catkin_ws2/logs/data/panda/results_orig_tprm_resolve_" + std::to_string(trial) + ".csv";
         std::ofstream ofs2_resolve(filePath.c_str(), std::ios_base::out );
         ofs2_resolve << results_replan;
-        ofs2_resolve.close();*/
+        ofs2_resolve.close();
 
         // TEST SETUP 3: STRRT Algorithm: Constant max solve time, Variable target execution time
-        nc.change_solver("strrt");
+        /*nc.change_solver("strrt");
 
         results = "";
         for (int i = 0; i < goal_travel_times.size(); i++)
         {
-            results += nc.solve_strrt(30, goal_travel_times[i]) + ", " + std::to_string(nc.execute_path()) + "\n";
-            std::cout << "--------------------------" << std::endl;
+            for (int j = 0; j < ranges.size(); j++)
+            {
+                for (int k = 0; k < initialBatchSizes.size(); k++)
+                {
+                    for (int l = 0; l < timeBoundFactorIncrease.size(); l++)
+                    {
+                        results += std::to_string(ranges[j]) + " " + std::to_string(initialBatchSizes[k]) + " " + std::to_string(timeBoundFactorIncrease[l]) + " " +  nc.solve_strrt(30, goal_travel_times[i], ranges[j], initialBatchSizes[k], timeBoundFactorIncrease[l]) + ", " + std::to_string(nc.execute_path()) + "\n";
+                        std::cout << "--------------------------" << std::endl;
+                    }
+                }
+            }
         }
+
 
         filePath = "/home/asper/catkin_ws2/logs/data/panda/results_strrt_target_exec_" + std::to_string(trial) + ".csv";
         std::ofstream ofs3(filePath.c_str(), std::ios_base::out );
         ofs3 << results;
-        ofs3.close();
+        ofs3.close();*/
         
         // TEST SETUP 4: STRRT Algorithm: Variable defined solve time
         /*results = "";
