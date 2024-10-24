@@ -5,7 +5,7 @@ In this repository, I compare two main active path planning algorithms on a 7 do
 The two algorithms are T-PRM and ST-RRT*.
 
 To test out the code, do the following:
-1. Clone repository in the source directory of a catkin workspace. (Ex. ~/catkin_ws/src)
+1. Clone repository in the source directory of a catkin workspace on an Ubuntu 20.04 system. (Ex. ~/catkin_ws/src)
 2. Ensure ROS noetic is installed along with all the necessary dependencies by running the install_script.sh in the scripts directory. This will also compile for you and throw the proper source commands in your ~/.bashrc. If you have any terminals open after running this script, restart them.
 3. There are three different launch files.
 	- roslaunch active_planning_pkg panda.launch
