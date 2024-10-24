@@ -6,19 +6,14 @@ The two algorithms are T-PRM and ST-RRT*.
 
 To test out the code, do the following:
 1. Clone repository in the source directory of a catkin workspace. (Ex. ~/catkin_ws/src)
-2. Ensure ROS noetic is installed and sourced (source /opt/ros/noetic/setup.bash)
-	 - Note, you will need to install ros-noetic-moveit-core and perhaps some other moveit libraries.
-3. Enter ~/catkin_ws and compile (catkin_make)
-4. There may be some ROS libraries that you need to install. Ensure to install these libraries as needed.
-5. Source the ROS workspace (source ~/catkin_ws/devel/setup.bash)
-6. roslaunch active_planning_pkg benchmarking.launch
-7. In a separate sourced terminal, rosservice call /plan_panda "{}". This will plan the path to the goal which was defined in the launched node.
-8. In the same terminal, rosservice call /execute_panda "{}". This will execute the solution which can be seen in Rviz.
-
-To test out the dual arm kinova simulation:
-1. roslaunch active_planning_pkg kinova_dual.launch
-2. In a separate sourced terminal, rosservice call /plan_kinova "{}". This will plan the path to the goal which was defined in the launched node.
-3. In the same terminal, rosservice call /execute_kinova "{}". This will execute the solution which can be seen in Rviz.
+2. Ensure ROS noetic is installed along with all the necessary dependencies by running the install_script.sh in the scripts directory. This will also compile for you and throw the proper source commands in your ~/.bashrc. If you have any terminals open after running this script, restart them.
+3. There are three different launch files.
+	- roslaunch active_planning_pkg panda.launch
+	- roslaunch active_planning_pkg kinova.launch
+	- roslaunch active_planning_pkg kinova_dual.launch
+4. In a separate terminal, (assuming you launched the panda) rosservice call /plan_panda "{}". This will plan the path to the goal which was defined in the launched node.
+	- If you launched one of the kinova launch files you would be able to call /plan_kinova. To be sure, you can see the list of rosservices with "rosservice list".
+5. In the same terminal, rosservice call /execute_panda "{}". This will execute the solution which can be seen in Rviz.
 
 Resources that helped build this repository:
 1. https://github.com/VIS4ROB-lab/t_prm
